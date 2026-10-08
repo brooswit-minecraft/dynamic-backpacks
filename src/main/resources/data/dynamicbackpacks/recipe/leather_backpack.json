@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    { "item": "dynamicbackpacks:stick_pack" },
+    { "item": "minecraft:leather" }
+  ],
+  "result": { "id": "dynamicbackpacks:leather_backpack" }
+}
