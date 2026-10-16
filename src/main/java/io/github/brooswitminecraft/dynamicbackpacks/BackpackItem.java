@@ -21,19 +21,45 @@ import java.util.function.Consumer;
  * costs durability.
  */
 public class BackpackItem extends ArmorItem {
+    /** One material, one weird utility (see the design rule in the spec). */
+    public enum Utility {
+        NONE,
+        /** Gold/Netherite: pulls nearby dropped items in. */
+        MAGNET,
+        /** Emerald: dings when ore is nearby, searching an expanding radius. */
+        ORE_DETECTOR,
+        /** Glow Pack: keeps the wearer glowing. */
+        GLOW,
+        /** Diving Pack: converts drowning damage into pack durability. */
+        DIVING,
+        /** Hopper Pack: pushes carried items downward into storage below. */
+        HOPPER
+    }
+
     private final CarryLogic.Protection protection;
+    private final Utility utility;
     @Nullable
     private final Supplier<? extends Item> degradesTo;
 
     public BackpackItem(Holder<ArmorMaterial> material, Item.Properties properties, CarryLogic.Protection protection,
             @Nullable Supplier<? extends Item> degradesTo) {
+        this(material, properties, protection, Utility.NONE, degradesTo);
+    }
+
+    public BackpackItem(Holder<ArmorMaterial> material, Item.Properties properties, CarryLogic.Protection protection,
+            Utility utility, @Nullable Supplier<? extends Item> degradesTo) {
         super(material, ArmorItem.Type.CHESTPLATE, properties);
         this.protection = protection;
+        this.utility = utility;
         this.degradesTo = degradesTo;
     }
 
     public CarryLogic.Protection protection() {
         return protection;
+    }
+
+    public Utility utility() {
+        return utility;
     }
 
     /**

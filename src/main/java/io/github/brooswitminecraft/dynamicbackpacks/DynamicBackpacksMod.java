@@ -31,8 +31,12 @@ public class DynamicBackpacksMod {
     public static final String MODID = "dynamicbackpacks";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    /** Vanilla leather chestplate durability (5 * 16). Packs are fractions of it. */
+    /** Vanilla chestplate durability (material base * 16). Packs are fractions of these. */
     private static final int LEATHER_CHESTPLATE_DURABILITY = 80;
+    private static final int IRON_CHESTPLATE_DURABILITY = 240;
+    private static final int GOLD_CHESTPLATE_DURABILITY = 112;
+    private static final int DIAMOND_CHESTPLATE_DURABILITY = 528;
+    private static final int NETHERITE_CHESTPLATE_DURABILITY = 592;
 
     public static final DeferredRegister<ArmorMaterial> ARMOR_MATERIALS = DeferredRegister.create(Registries.ARMOR_MATERIAL, MODID);
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
@@ -50,6 +54,39 @@ public class DynamicBackpacksMod {
             () -> new BackpackItem(PACK_MATERIAL, new Item.Properties().durability(LEATHER_CHESTPLATE_DURABILITY / 4),
                     CarryLogic.Protection.FULL, STICK_PACK));
 
+    public static final DeferredItem<BackpackItem> IRON_BACKPACK = ITEMS.register("iron_backpack",
+            () -> new BackpackItem(PACK_MATERIAL, new Item.Properties().durability(IRON_CHESTPLATE_DURABILITY / 4),
+                    CarryLogic.Protection.FULL, LEATHER_BACKPACK));
+    public static final DeferredItem<BackpackItem> GOLD_BACKPACK = ITEMS.register("gold_backpack",
+            () -> new BackpackItem(PACK_MATERIAL, new Item.Properties().durability(GOLD_CHESTPLATE_DURABILITY / 4),
+                    CarryLogic.Protection.FULL, BackpackItem.Utility.MAGNET, LEATHER_BACKPACK));
+    public static final DeferredItem<BackpackItem> DIAMOND_BACKPACK = ITEMS.register("diamond_backpack",
+            () -> new BackpackItem(PACK_MATERIAL, new Item.Properties().durability(DIAMOND_CHESTPLATE_DURABILITY / 4),
+                    CarryLogic.Protection.FULL, LEATHER_BACKPACK));
+    public static final DeferredItem<BackpackItem> NETHERITE_BACKPACK = ITEMS.register("netherite_backpack",
+            () -> new BackpackItem(PACK_MATERIAL, new Item.Properties().durability(NETHERITE_CHESTPLATE_DURABILITY / 4),
+                    CarryLogic.Protection.FULL, BackpackItem.Utility.MAGNET, LEATHER_BACKPACK));
+    /** Durability: "Same as Gold Backpack" per the spec's upgrade table. */
+    public static final DeferredItem<BackpackItem> EMERALD_BACKPACK = ITEMS.register("emerald_backpack",
+            () -> new BackpackItem(PACK_MATERIAL, new Item.Properties().durability(GOLD_CHESTPLATE_DURABILITY / 4),
+                    CarryLogic.Protection.FULL, BackpackItem.Utility.ORE_DETECTOR, LEATHER_BACKPACK));
+    /** Durability: "Same as Iron Backpack" per the spec's upgrade table. */
+    public static final DeferredItem<BackpackItem> GLOW_PACK = ITEMS.register("glow_pack",
+            () -> new BackpackItem(PACK_MATERIAL, new Item.Properties().durability(IRON_CHESTPLATE_DURABILITY / 4),
+                    CarryLogic.Protection.FULL, BackpackItem.Utility.GLOW, LEATHER_BACKPACK));
+    /**
+     * Durability is an open design decision (spec: "Diving Pack durability
+     * multiplier is not yet specified; do not invent one without a design
+     * decision"), so this inherits the Leather Backpack's own durability
+     * rather than applying an invented multiplier.
+     */
+    public static final DeferredItem<BackpackItem> DIVING_PACK = ITEMS.register("diving_pack",
+            () -> new BackpackItem(PACK_MATERIAL, new Item.Properties().durability(LEATHER_CHESTPLATE_DURABILITY / 4),
+                    CarryLogic.Protection.FULL, BackpackItem.Utility.DIVING, LEATHER_BACKPACK));
+    public static final DeferredItem<BackpackItem> HOPPER_PACK = ITEMS.register("hopper_pack",
+            () -> new BackpackItem(PACK_MATERIAL, new Item.Properties().durability(LEATHER_CHESTPLATE_DURABILITY / 4),
+                    CarryLogic.Protection.FULL, BackpackItem.Utility.HOPPER, LEATHER_BACKPACK));
+
     public DynamicBackpacksMod(IEventBus modEventBus, ModContainer modContainer) {
         ARMOR_MATERIALS.register(modEventBus);
         ITEMS.register(modEventBus);
@@ -57,6 +94,14 @@ public class DynamicBackpacksMod {
         modContainer.registerConfig(ModConfig.Type.SERVER, BackpackConfig.SPEC);
         NeoForge.EVENT_BUS.addListener(SpillHandler::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(SpillHandler::onLoggedOut);
+        NeoForge.EVENT_BUS.addListener(MagnetHandler::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(OreDetectorHandler::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(OreDetectorHandler::onLoggedOut);
+        NeoForge.EVENT_BUS.addListener(GlowHandler::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(GlowHandler::onLoggedOut);
+        NeoForge.EVENT_BUS.addListener(DivingHandler::onLivingDamagePre);
+        NeoForge.EVENT_BUS.addListener(HopperHandler::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(HopperHandler::onLoggedOut);
         LOGGER.info("Dynamic Backpacks loaded");
     }
 
@@ -64,6 +109,14 @@ public class DynamicBackpacksMod {
         if (event.getTabKey() == CreativeModeTabs.COMBAT) {
             event.accept(STICK_PACK);
             event.accept(LEATHER_BACKPACK);
+            event.accept(IRON_BACKPACK);
+            event.accept(GOLD_BACKPACK);
+            event.accept(DIAMOND_BACKPACK);
+            event.accept(NETHERITE_BACKPACK);
+            event.accept(EMERALD_BACKPACK);
+            event.accept(GLOW_PACK);
+            event.accept(DIVING_PACK);
+            event.accept(HOPPER_PACK);
         }
     }
 }

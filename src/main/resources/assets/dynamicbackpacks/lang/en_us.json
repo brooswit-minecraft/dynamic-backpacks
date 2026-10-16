@@ -1,4 +1,12 @@
 {
   "item.dynamicbackpacks.stick_pack": "Stick Pack",
-  "item.dynamicbackpacks.leather_backpack": "Leather Backpack"
+  "item.dynamicbackpacks.leather_backpack": "Leather Backpack",
+  "item.dynamicbackpacks.iron_backpack": "Iron Backpack",
+  "item.dynamicbackpacks.gold_backpack": "Gold Backpack",
+  "item.dynamicbackpacks.diamond_backpack": "Diamond Backpack",
+  "item.dynamicbackpacks.netherite_backpack": "Netherite Backpack",
+  "item.dynamicbackpacks.emerald_backpack": "Emerald Backpack",
+  "item.dynamicbackpacks.glow_pack": "Glow Pack",
+  "item.dynamicbackpacks.diving_pack": "Diving Pack",
+  "item.dynamicbackpacks.hopper_pack": "Hopper Pack"
 }
