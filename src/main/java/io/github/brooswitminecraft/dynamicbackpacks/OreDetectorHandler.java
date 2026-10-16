@@ -1,14 +1,10 @@
 package io.github.brooswitminecraft.dynamicbackpacks;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -32,13 +28,16 @@ import io.github.brooswitminecraft.dynamicbackpacks.OreDetectorLogic.SampleResul
  * {@link OreDetectorLogic}) rather than scanning the whole volume
  * synchronously in one tick, and the radius is capped
  * ({@code oreDetectorMaxRadius}) so that per-tick cost stays bounded even
- * for a player who never finds ore. Positions outside a loaded chunk or
- * outside the world's build height are skipped without a block-state read.
+ * for a player who never finds ore.
+ *
+ * <p>The volume itself is never materialized: a sample index maps to a
+ * cube offset by pure arithmetic ({@link #offsetForIndex}), and positions
+ * outside the actual sphere, outside a loaded chunk, or outside the
+ * world's build height are rejected cheaply, with no allocation and no
+ * block-state read.
  */
 public final class OreDetectorHandler {
     private static final Map<UUID, OreDetectorLogic> STATES = new HashMap<>();
-    /** Sphere offsets for a given radius are the same for every player, so cache them by radius. */
-    private static final Map<Integer, List<Vec3i>> OFFSETS_BY_RADIUS = new ConcurrentHashMap<>();
 
     private OreDetectorHandler() {
     }
@@ -60,39 +59,28 @@ public final class OreDetectorHandler {
 
         Level level = player.level();
         BlockPos center = player.blockPosition();
-        List<Vec3i> offsets = offsetsFor(state.radius());
-        boolean found = state.tick(offsets.size(), index -> sample(level, center, offsets.get(index)));
+        int radius = state.radius();
+        boolean found = state.tick(CubeIndexing.volumeSize(radius), index -> sample(level, center, radius, index));
         if (found) {
             level.playSound(null, player.getX(), player.getY(), player.getZ(),
                     SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.5F, 1.4F);
         }
     }
 
-    private static SampleResult sample(Level level, BlockPos center, Vec3i offset) {
-        BlockPos pos = center.offset(offset);
+    private static SampleResult sample(Level level, BlockPos center, int radius, int index) {
+        int[] offset = CubeIndexing.offsetForIndex(radius, index);
+        int dx = offset[0];
+        int dy = offset[1];
+        int dz = offset[2];
+        if (!CubeIndexing.isWithinSphere(dx, dy, dz, radius)) {
+            return SampleResult.NOT_FOUND;
+        }
+
+        BlockPos pos = center.offset(dx, dy, dz);
         if (level.isOutsideBuildHeight(pos) || !level.isLoaded(pos)) {
             return SampleResult.UNAVAILABLE;
         }
         return level.getBlockState(pos).is(Tags.Blocks.ORES) ? SampleResult.FOUND : SampleResult.NOT_FOUND;
-    }
-
-    private static List<Vec3i> offsetsFor(int radius) {
-        return OFFSETS_BY_RADIUS.computeIfAbsent(radius, OreDetectorHandler::computeSphereOffsets);
-    }
-
-    private static List<Vec3i> computeSphereOffsets(int radius) {
-        List<Vec3i> offsets = new ArrayList<>();
-        int radiusSquared = radius * radius;
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dy = -radius; dy <= radius; dy++) {
-                for (int dz = -radius; dz <= radius; dz++) {
-                    if (dx * dx + dy * dy + dz * dz <= radiusSquared) {
-                        offsets.add(new Vec3i(dx, dy, dz));
-                    }
-                }
-            }
-        }
-        return offsets;
     }
 
     public static void onLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
