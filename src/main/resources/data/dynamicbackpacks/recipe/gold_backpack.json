@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    { "item": "dynamicbackpacks:leather_backpack" },
+    { "item": "minecraft:gold_ingot" }
+  ],
+  "result": { "id": "dynamicbackpacks:gold_backpack" }
+}

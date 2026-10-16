@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    { "item": "dynamicbackpacks:leather_backpack" },
+    { "item": "minecraft:emerald" }
+  ],
+  "result": { "id": "dynamicbackpacks:emerald_backpack" }
+}
