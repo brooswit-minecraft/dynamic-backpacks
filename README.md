@@ -30,6 +30,19 @@ replace chest armor to protect cargo.
   storage is below the player.
 - Item icons for the new packs currently reuse the Leather Backpack texture
   as a placeholder; distinct art is a follow-up.
+- Emerald wallet: always on, independent of any backpack. Every tick it
+  counts loose emeralds and emerald blocks across the main inventory
+  **including the hotbar** (unlike the carry/spill mechanic above, which
+  excludes the hotbar) and settles them onto a stable 56-64 loose-emerald
+  reserve - packing surplus above 64 into blocks, and unpacking blocks to
+  cover a shortfall below 56, at the vanilla 9:1 ratio. The total value
+  (loose + 9 x blocks) is conserved exactly, and a conversion that can't
+  fit in the inventory is skipped rather than ever dropping or duplicating
+  items. Eligible slots are the 36 main-inventory slots (`Inventory.items`,
+  hotbar + the 27 non-hotbar slots); armor, offhand, the cursor stack,
+  crafting grids and any open container are untouched. The player's
+  currently selected hotbar slot keeps the loose reserve when that slot is
+  itself eligible, so a selected emerald stack stays usable for trading.
 
 ## Building
 
