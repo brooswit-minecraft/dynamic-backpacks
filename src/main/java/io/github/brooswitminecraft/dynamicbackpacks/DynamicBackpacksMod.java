@@ -102,6 +102,7 @@ public class DynamicBackpacksMod {
         NeoForge.EVENT_BUS.addListener(DivingHandler::onLivingDamagePre);
         NeoForge.EVENT_BUS.addListener(HopperHandler::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(HopperHandler::onLoggedOut);
+        NeoForge.EVENT_BUS.addListener(WalletHandler::onPlayerTick);
         LOGGER.info("Dynamic Backpacks loaded");
     }
 
