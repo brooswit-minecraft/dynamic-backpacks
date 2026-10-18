@@ -56,13 +56,20 @@ public final class WalletLogic {
 
     /**
      * Plans a new arrangement of the given eligible slots that reaches the
-     * stable target for their combined value, preserving {@code
-     * preferredLooseSlot}'s contents as the loose reserve when that slot is
-     * itself eligible. Returns {@code null} when the target is already met
-     * (a no-op, preserving idempotence) or when the target's stacks do not
-     * fit in the number of EMPTY/EMERALD/BLOCK slots available - OTHER slots
-     * are never touched, so a conversion that would need more of them is
-     * deferred rather than applied.
+     * stable target for their combined value. Each required stack prefers a
+     * slot that already holds that same kind (the loose reserve additionally
+     * preferring {@code preferredLooseSlot} when that slot already holds
+     * loose emeralds, never one that would have to convert a block or empty
+     * slot just to honor the preference), falling back to an empty slot and
+     * only then to any other eligible slot. This keeps an already-stable
+     * layout untouched - e.g. a block sitting in the selected hotbar slot is
+     * never displaced by the loose reserve - rather than shuffling slots
+     * whenever the total happens to be reachable a different way. Returns
+     * {@code null} when the target is already met (a no-op, preserving
+     * idempotence) or when the target's stacks do not fit in the number of
+     * EMPTY/EMERALD/BLOCK slots available - OTHER slots are never touched,
+     * so a conversion that would need more of them is deferred rather than
+     * applied.
      */
     public static Plan plan(SlotKind[] kinds, long[] counts, int preferredLooseSlot) {
         int n = kinds.length;
@@ -104,18 +111,16 @@ public final class WalletLogic {
         boolean[] used = new boolean[n];
         int idx = 0;
         if (target.loose() > 0) {
-            int slot = (preferredLooseSlot >= 0 && preferredLooseSlot < n && kinds[preferredLooseSlot] != SlotKind.OTHER)
+            int slot = (preferredLooseSlot >= 0 && preferredLooseSlot < n && kinds[preferredLooseSlot] == SlotKind.EMERALD)
                     ? preferredLooseSlot
-                    : findNextAvailable(kinds, used, 0);
+                    : pickSlotFor(kinds, used, SlotKind.EMERALD);
             newKinds[slot] = SlotKind.EMERALD;
             newCounts[slot] = neededStacks[0];
             used[slot] = true;
             idx = 1;
         }
-        int searchFrom = 0;
         for (; idx < neededStacks.length; idx++) {
-            int slot = findNextAvailable(kinds, used, searchFrom);
-            searchFrom = slot + 1;
+            int slot = pickSlotFor(kinds, used, SlotKind.BLOCK);
             newKinds[slot] = SlotKind.BLOCK;
             newCounts[slot] = neededStacks[idx];
             used[slot] = true;
@@ -127,11 +132,34 @@ public final class WalletLogic {
         return new Plan(newKinds, newCounts);
     }
 
-    private static int findNextAvailable(SlotKind[] kinds, boolean[] used, int from) {
-        for (int i = from; i < kinds.length; i++) {
-            if (kinds[i] != SlotKind.OTHER && !used[i]) {
+    /**
+     * Picks a slot for a required stack of {@code want}: a not-yet-used slot
+     * already holding that kind first, an empty slot next, and only as a
+     * last resort any other not-yet-used eligible slot (the caller has
+     * already verified enough eligible slots exist in total).
+     */
+    private static int pickSlotFor(SlotKind[] kinds, boolean[] used, SlotKind want) {
+        int fallbackEmpty = -1;
+        int fallbackAny = -1;
+        for (int i = 0; i < kinds.length; i++) {
+            if (kinds[i] == SlotKind.OTHER || used[i]) {
+                continue;
+            }
+            if (kinds[i] == want) {
                 return i;
             }
+            if (kinds[i] == SlotKind.EMPTY && fallbackEmpty < 0) {
+                fallbackEmpty = i;
+            }
+            if (fallbackAny < 0) {
+                fallbackAny = i;
+            }
+        }
+        if (fallbackEmpty >= 0) {
+            return fallbackEmpty;
+        }
+        if (fallbackAny >= 0) {
+            return fallbackAny;
         }
         throw new IllegalStateException("caller already verified enough eligible slots");
     }

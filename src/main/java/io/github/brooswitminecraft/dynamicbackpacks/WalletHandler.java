@@ -33,12 +33,15 @@ public final class WalletHandler {
         long[] counts = new long[WALLET_SLOTS];
         for (int i = 0; i < WALLET_SLOTS; i++) {
             ItemStack stack = inventory.items.get(i);
+            // A stack with any non-default data component (a custom name, enchantment, etc.) carries
+            // metadata that `new ItemStack(item, count)` cannot reproduce, so it is left untouched
+            // rather than merged/split with plain stacks of the same item.
             if (stack.isEmpty()) {
                 kinds[i] = WalletLogic.SlotKind.EMPTY;
-            } else if (stack.is(Items.EMERALD)) {
+            } else if (stack.is(Items.EMERALD) && stack.isComponentsPatchEmpty()) {
                 kinds[i] = WalletLogic.SlotKind.EMERALD;
                 counts[i] = stack.getCount();
-            } else if (stack.is(Items.EMERALD_BLOCK)) {
+            } else if (stack.is(Items.EMERALD_BLOCK) && stack.isComponentsPatchEmpty()) {
                 kinds[i] = WalletLogic.SlotKind.BLOCK;
                 counts[i] = stack.getCount();
             } else {

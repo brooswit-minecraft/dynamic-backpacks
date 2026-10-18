@@ -39,10 +39,14 @@ replace chest armor to protect cargo.
   (loose + 9 x blocks) is conserved exactly, and a conversion that can't
   fit in the inventory is skipped rather than ever dropping or duplicating
   items. Eligible slots are the 36 main-inventory slots (`Inventory.items`,
-  hotbar + the 27 non-hotbar slots); armor, offhand, the cursor stack,
-  crafting grids and any open container are untouched. The player's
-  currently selected hotbar slot keeps the loose reserve when that slot is
-  itself eligible, so a selected emerald stack stays usable for trading.
+  hotbar + the 27 non-hotbar slots) holding plain emeralds/emerald blocks;
+  armor, offhand, the cursor stack, crafting grids, any open container, and
+  any emerald/emerald-block stack carrying a custom name or other data
+  component are untouched. An already-stable layout is left alone: each
+  required stack prefers a slot that already holds that same kind, so the
+  loose reserve only lands on the player's currently selected hotbar slot
+  when that slot already holds loose emeralds - it never displaces a block
+  (or anything else) sitting there just to honor the preference.
 
 ## Building
 

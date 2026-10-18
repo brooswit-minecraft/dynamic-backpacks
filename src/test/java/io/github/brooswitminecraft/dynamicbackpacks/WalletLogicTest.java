@@ -122,6 +122,39 @@ class WalletLogicTest {
     }
 
     @Test
+    void doesNotDisplaceABlockFromTheSelectedSlotWhenAlreadyStable() {
+        // 60 loose emeralds elsewhere, 1 emerald block sitting in the selected hotbar slot.
+        // Total value (60 + 9 = 69) already matches the target split (60 loose, 1 block):
+        // the selected slot must stay a block, not get overwritten with the loose reserve.
+        SlotKind[] kinds = kinds(36);
+        long[] counts = new long[36];
+        kinds[9] = SlotKind.EMERALD;
+        counts[9] = 60;
+        kinds[0] = SlotKind.BLOCK;
+        counts[0] = 1;
+
+        assertNull(WalletLogic.plan(kinds, counts, 0), "an already-stable layout must not move the selected block");
+    }
+
+    @Test
+    void preferringTheSelectedSlotNeverConvertsABlockOrEmptySlotJustToHonorThePreference() {
+        // Selected slot holds a block; total value needs a loose reserve, but it must land
+        // on the existing emerald slot rather than displacing the selected block.
+        SlotKind[] kinds = kinds(36);
+        long[] counts = new long[36];
+        kinds[0] = SlotKind.BLOCK;
+        counts[0] = 2; // value 18, below the reserve floor together with the loose below
+        kinds[9] = SlotKind.EMERALD;
+        counts[9] = 50; // total value 68 -> target 59 loose + 1 block
+
+        Plan plan = WalletLogic.plan(kinds, counts, 0);
+        assertEqualValue(kinds, counts, plan);
+        assertEquals(SlotKind.BLOCK, plan.kinds()[0], "selected slot must stay a block, not become the loose reserve");
+        assertEquals(59, sumByKind(plan, SlotKind.EMERALD));
+        assertEquals(1, sumByKind(plan, SlotKind.BLOCK));
+    }
+
+    @Test
     void fallsBackOffThePreferredSlotWhenItIsIneligible() {
         SlotKind[] kinds = kinds(36);
         long[] counts = new long[36];
