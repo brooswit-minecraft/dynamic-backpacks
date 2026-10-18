@@ -84,6 +84,12 @@ public final class WalletLogic {
         }
         long totalValue = totalLoose + (long) EMERALDS_PER_BLOCK * totalBlocks;
         Target target = computeTarget(totalValue);
+        if (totalLoose == target.loose() && totalBlocks == target.blocks()) {
+            // Totals already match the target split: no conversion is needed, so the layout is left
+            // alone even if blocks (or loose emeralds) happen to sit in more than one stack - merging
+            // same-kind stacks that need no conversion is not this wallet's job.
+            return null;
+        }
         long[] neededStacks = buildStackList(target);
 
         int available = 0;

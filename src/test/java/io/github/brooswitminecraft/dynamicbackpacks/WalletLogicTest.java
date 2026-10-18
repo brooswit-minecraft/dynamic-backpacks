@@ -137,6 +137,24 @@ class WalletLogicTest {
     }
 
     @Test
+    void doesNotMergeBlockStacksAcrossSeparateSlotsWhenTotalsAlreadyMatchTheTarget() {
+        // slot9 = 60 loose, slot0 = 1 block, selected slot8 = 1 block: totals (60 loose, 2 blocks)
+        // already match the target for value 78, even though the 2 blocks sit in two separate
+        // stacks rather than one. No conversion is needed, so neither slot should move.
+        SlotKind[] kinds = kinds(36);
+        long[] counts = new long[36];
+        kinds[9] = SlotKind.EMERALD;
+        counts[9] = 60;
+        kinds[0] = SlotKind.BLOCK;
+        counts[0] = 1;
+        kinds[8] = SlotKind.BLOCK;
+        counts[8] = 1;
+
+        assertNull(WalletLogic.plan(kinds, counts, 8),
+                "totals already match the target; splitting blocks across two stacks is not itself a reason to rearrange");
+    }
+
+    @Test
     void preferringTheSelectedSlotNeverConvertsABlockOrEmptySlotJustToHonorThePreference() {
         // Selected slot holds a block; total value needs a loose reserve, but it must land
         // on the existing emerald slot rather than displacing the selected block.

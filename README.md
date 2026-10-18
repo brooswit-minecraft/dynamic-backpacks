@@ -42,11 +42,13 @@ replace chest armor to protect cargo.
   hotbar + the 27 non-hotbar slots) holding plain emeralds/emerald blocks;
   armor, offhand, the cursor stack, crafting grids, any open container, and
   any emerald/emerald-block stack carrying a custom name or other data
-  component are untouched. An already-stable layout is left alone: each
-  required stack prefers a slot that already holds that same kind, so the
-  loose reserve only lands on the player's currently selected hotbar slot
-  when that slot already holds loose emeralds - it never displaces a block
-  (or anything else) sitting there just to honor the preference.
+  component are untouched. An already-stable layout is left alone: once the
+  loose and block totals already match the target, nothing is rearranged -
+  not even to merge same-kind stacks sitting in separate slots - and
+  otherwise each required stack prefers a slot that already holds that same
+  kind, so the loose reserve only lands on the player's currently selected
+  hotbar slot when that slot already holds loose emeralds, never displacing
+  a block (or anything else) sitting there just to honor the preference.
 
 ## Building
 
